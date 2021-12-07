@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{% static 'style/authentication-signin-style.css' %}">
+</head>
+<body>
+    <br>
+    <br>
+    <div class="cont">
+        
+        <div class="form sign-in">
+            <h2>Create your Account</h2>
+            <form method="post">
+                {% csrf_token %}
+                <label>
+                    <span>Name</span>
+                    {{signup_form.user_name}}
+                    {% for error in signup_form.user_name.errors %}
+                        <p class='error' style='color:#d4af7a'>{{error}}</p>
+                    {% endfor %}
+                </label>
+                <label>
+                    <span>Email</span>
+                    {{signup_form.email}}
+                    {% for error in signup_form.email.errors %}
+                        <p class='error' style='color:#d4af7a'>{{error}}</p>
+                    {% endfor %}
+                </label>
+                <label>
+                    <span>Password</span>
+                    {{signup_form.password}}
+                </label>
+                <label >
+                    <span>Re Password</span>
+                    {{signup_form.re_password}}
+                    {% for error in signup_form.re_password.errors %}
+                        <p class='error' style='color:#d4af7a'>{{error}}</p>
+                    {% endfor %}
+                </label>
+                <button type="submit" class="submit">Sign Up</button>
+            </form>
+                
+            
+        </div>
+
+        <div class="sub-cont">
+            <div class="img">
+                
+                <div class="img__text m--up">
+                    <h3>If you already has an account, just sign in.<h3>
+                </div>
+             
+                
+                <a href="{% url 'authentication:sign-in' %}">
+                    <div class="img__btn">
+                        <span class="m--up">Sign In</span>
+                    </div>
+                </a>
+            </div>
+
+            
+        </div>
+    </div>
+
+    <script>
+        document.querySelector('.img__btn').addEventListener('click', function() {
+            document.querySelector('.cont').classList.toggle('s--signup');
+        });
+    </script>
+</body>
+</html>

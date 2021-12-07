@@ -1,0 +1,406 @@
+{% extends 'chat/index.html' %}
+{% load static %}
+
+
+
+{% block navbar %}
+	<nav>
+			
+			
+			{% if private %}
+				<div class="chat-active">
+					<img src="{{private.profile_image.url}}" class="thumb-img" /> 
+					<span><strong> &nbsp; {{private.user.username}}</strong></span>
+				</div>
+			{% else %}
+				<div class="chat-active">
+					<img src="{{chat.profile.url}}" class="thumb-img" /> 
+					<span><strong> &nbsp; {{chat.roomname}}</strong></span>
+				</div>
+			{% endif %}
+				
+			
+				
+			{% if private %}
+				<div class="search-chat" style='background:none'>
+					<a href="{% url 'chat:delete' room_name=chat.roomname %}">delete</a>
+					<a href="{% url 'chat:cleare' room_name=chat.roomname %}">cleare</a>
+				</div>
+			{% else %}
+				<div class="search-chat" style='background:none'>
+					
+					{% if permission %}
+						<a href="{% url 'chat:delete' room_name=chat.roomname %}">delete</a>
+					{% endif %}
+						
+					<a href="{% url 'chat:left' room_name=chat.roomname %}">left</a>
+				</div>
+			{% endif %}
+					
+			
+				
+	</nav>
+		
+{% endblock navbar %}
+	
+
+{% block chat_group %}
+	<div class="sidebar-right">
+			<div class="row">
+				
+				{% if private %}
+				<img src="{{private.profile_image.url}}" class="thumb-img" style='margin:20%;height: 110px;width: 110px;'/> 
+				<br>
+				<div class="todo">
+					<h5>Properties</h5>
+					<ul>
+						
+						{% if private.user.first_name %}
+						<li><i aria-hidden="true" class="fa fa-user"></i>{{private.user.first_name}}</li>
+							
+						{% endif %}
+						
+						{% if private.location %}
+							<li><i class="fa fa-map-marker " aria-hidden="true"></i>{{private.location}}</li>	
+						{% endif %}
+							
+						<li><i class="fa fa-envelope " aria-hidden="true"></i>{{private.user.email}}</li>
+						
+					</ul>
+				</div>
+				{% else %}
+					<div class="online-user" id='container-users'>
+						<h5>Online Users</h5>		
+						<ul id='all-users'>
+							
+						</ul>	
+					</div>
+				{% endif %}
+					
+			</div>
+	</div>
+		
+		<!-- CHAT -->
+		<div class="wraper">
+			<div class='content' id='chat-block'>
+				<ul style='list-style-type: none;' class='content' id='chat-log'>
+					
+				</ul>
+			</div>	
+				 
+		</br>
+		</br>
+			<div class="footer-chat">
+				<i class="fa fa-camera" aria-hidden="true" onclick="document.getElementById('inp').click();"></i>
+				<input type="file" style="display:none;" id="inp" name="file"/>
+
+				<input id='chat-message-input' type="text" name="chat_message" placeholder="type your text..." cols="40" rows="5"/>
+				<i id='chat-message-submit' class="fa fa-paper-plane-o" aria-hidden="true" onclick="appendText()"></i>
+			</div>
+			
+		</div>
+		<!-- ACTIVITY -->
+		<!-- <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			  <div class="modal-dialog" role="document">
+			    <div class="modal-content">
+			      
+					<div class="modal-header">
+			        <h5 class="modal-title" id="exampleModalLabel">Add Activity</h5>
+			        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			          <span aria-hidden="true">&times;</span>
+			        </button>
+			      
+					</div>
+			      <div class="modal-body">
+			        <form>
+			          <div class="form-group">
+			            <label for="recipient-name" class="col-form-label">Title:</label>
+			            <input type="text" class="form-control" name="title" autocomplete="off">
+			          </div>
+			          <div class="form-group">
+			            <label for="message-text" class="col-form-label">Short Description:</label>
+			            <textarea class="form-control" name="message-text" autocomplete="off"></textarea>
+			          </div>
+			        </form>
+			      </div>
+
+			      <div class="modal-footer">
+			        <button type="button" class="btn btn-secondary" id="close-modal" data-dismiss="modal">Close</button>
+			        <button type="button" class="btn btn-primary" onclick="addActivity()">Send</button>
+			      </div>
+			    </div>
+			  </div>
+		</div>
+		 -->
+{% endblock chat_group %}
+
+{% block scripts %}
+	{{ room_name|json_script:"room-name" }}
+	<script>
+		const roomName = JSON.parse(document.getElementById('room-name').textContent);
+		var username={{username}};
+		const chatSocket3 = new WebSocket('ws://'+ window.location.host+ '/ws/chat/'+ 'onlineUser'+ '/');
+		const chatSocket = new ReconnectingWebSocket('ws://'+ window.location.host+ '/ws/chat/'+ roomName+ '/');
+		const chatSocket2 = new WebSocket('ws://'+ window.location.host+ '/ws/chat/'+'listener'+ '/');
+		
+
+		
+		chatSocket3.onmessage = function(e) {
+			var data = JSON.parse(e.data);
+			for(let i=data['members_list'].length-1;i>=0;i--){
+				
+				if(i==data['members_list'].length-1){
+					var parent=document.getElementById('container-users');
+					var child=document.getElementById('all-users');
+					var ul=document.createElement('ul');
+					ul.setAttribute('id','all-users');
+					parent.replaceChild(ul,child);
+				}
+				createuser(data['members_list'][i]);
+				
+			}
+		}
+
+
+		function createuser(data){
+			var span=document.createElement('span');
+			span.innerText=data['__str__']
+			var msgListTag = document.createElement('li');
+			var aTag=document.createElement('a');
+			var image_profile=document.createElement('img');
+			image_profile.src=data['image_field'];
+			aTag.appendChild(image_profile);
+			aTag.appendChild(span);
+			msgListTag.appendChild(aTag);
+			span.style='color: aqua;'
+			image_profile.className='small-img';
+			image_profile.style='margin-right: 10%;';
+			msgListTag.style='margin-Top:10%'
+			aTag.style='list-style-type: none;';
+			aTag.href=data['get_contact_url']
+			document.querySelector('#all-users').appendChild(msgListTag);
+		}
+
+		chatSocket2.onmessage = function(e) {
+			var data = JSON.parse(e.data);
+			chat_last_message(data);
+			for( let i=data['members_list'].length-1; i>=0 ; i--){
+				if(data['members_list'][i] == username){
+					if(data['__str__'] != username ){
+						if(data['roomname'] != roomName){
+							if (!("Notification" in window)) {
+								alert("This browser does not support desktop notification");
+							}
+							else if (Notification.permission === "granted") {
+								if(data.label === 'text'){
+									var notification = new Notification(data['__str__']+" : "+data['message']);
+								}else{
+									var notification = new Notification(data['__str__']+" : sent image ");
+								}
+							}
+							else if (Notification.permission !== "denied") {
+								Notification.requestPermission().then(function (permission) {
+									if (permission === "granted") {
+									var notification = new Notification("Hi there!");
+									}
+								});
+							}
+						}
+					}
+				}
+		}
+	}
+
+		chatSocket.onmessage = function(e) {
+			const data = JSON.parse(e.data);
+			if(data['command'] === 'fetch_message'){
+				for(let i=data['message'].length-1;i>=0;i--){
+					createMessage(data['message'][i]);
+				}
+			}
+			else{
+				createMessage(data);
+			}
+			
+		};
+
+		function chat_last_message(data){
+			var textSpan=document.getElementById((data.roomname)+'_last_message');
+			if(data['label']=='text'){
+				textSpan.innerText=(data.__str__)+' : '+(data.message);
+			}
+			else if(data['label']=='image'){
+				textSpan.innerText=(data.__str__)+' : send images';
+			}
+			var timeSpan=document.getElementById((data.roomname)+'_last_message_time');
+			timeSpan.innerText=data.local_date;
+		}
+
+		function createMessage(data) {
+			var author = data["__str__"];
+			var command = data['command'];
+			if(author === username){
+				if(command === 'image'||data['label']==='image'){
+					var spantextTag=document.createElement('span');
+					var image=document.createElement('img');
+					image.src=data.message;
+					var spantimeTag=document.createElement('span');
+					spantimeTag.innerText=data.local_date;
+					var brTag=document.createElement('br');
+					var msgListTag = document.createElement('li');
+					var outerdivTag=document.createElement('div');
+					var divTag=document.createElement('div');
+					spantextTag.appendChild(image);
+					spantextTag.appendChild(brTag);
+					divTag.appendChild(spantextTag);
+					divTag.appendChild(spantimeTag);
+					outerdivTag.appendChild(divTag);
+					msgListTag.appendChild(outerdivTag);
+
+					msgListTag.style='padding-bottom: 20px;';
+					outerdivTag.className='row';
+					divTag.className='right-chat';
+					spantextTag.className='chat-text';
+					spantimeTag.className='chat-time';
+					spantimeTag.style="float:right;"
+					
+				}else{
+					var spantextTag=document.createElement('span');
+					spantextTag.innerText=data.message;
+					var spantimeTag=document.createElement('span');
+					spantimeTag.innerText=data.local_date;
+					var brTag=document.createElement('br');
+					var msgListTag = document.createElement('li');
+					var outerdivTag=document.createElement('div');
+					var divTag=document.createElement('div');
+					spantextTag.appendChild(brTag);
+					divTag.appendChild(spantextTag);
+					divTag.appendChild(spantimeTag);
+					outerdivTag.appendChild(divTag);
+					msgListTag.appendChild(outerdivTag);
+
+					msgListTag.style='padding-bottom: 20px;';
+					outerdivTag.className='row';
+					divTag.className='right-chat';
+					spantextTag.className='chat-text';
+					spantimeTag.className='chat-time';
+					spantimeTag.style="float:right;"
+				}
+			}
+			else{
+				if(command === 'image'||data['label']==='image'){
+					var profile_image=document.createElement('img');
+					profile_image.src=data.get_user_profile;
+					
+					var spantextTag=document.createElement('span');
+					var image=document.createElement('img');
+					image.src=data.message;
+					var spantimeTag=document.createElement('span');
+					spantimeTag.innerText=data.local_date;
+					var brTag=document.createElement('br');
+					var msgListTag = document.createElement('li');
+					var outerdivTag=document.createElement('div');
+					var divTag=document.createElement('div');
+					spantextTag.appendChild(image);
+					spantextTag.appendChild(brTag);
+					divTag.appendChild(spantextTag);
+					divTag.appendChild(spantimeTag);
+					outerdivTag.appendChild(profile_image);
+					outerdivTag.appendChild(divTag);
+					msgListTag.appendChild(outerdivTag);
+
+					msgListTag.style='padding-bottom: 20px;';
+					outerdivTag.className='row';
+					divTag.className='left-chat';
+					divTag.style='float:right';
+					spantextTag.className='chat-text';
+					spantimeTag.className='chat-time';
+					spantimeTag.style="float:right;"
+					profile_image.className="small-img";
+					profile_image.style='float:left;margin-right:0%;';
+				}
+				else{
+					var profile_image=document.createElement('img');
+					profile_image.src=data.get_user_profile;
+					var spantextTag=document.createElement('span');
+					spantextTag.innerText=data.message;
+					var spantimeTag=document.createElement('span');
+					spantimeTag.innerText=data.local_date;
+					var brTag=document.createElement('br');
+					
+					var msgListTag = document.createElement('li');
+					var outerdivTag=document.createElement('div');
+					var divTag=document.createElement('div');
+					spantextTag.appendChild(brTag);
+					divTag.appendChild(spantextTag);
+					divTag.appendChild(spantimeTag);
+					outerdivTag.appendChild(profile_image);
+					outerdivTag.appendChild(divTag);
+					msgListTag.appendChild(outerdivTag);
+
+					msgListTag.style='padding-bottom: 20px;';
+					outerdivTag.className='row';
+					divTag.className='left-chat';
+					divTag.style='float:right';
+					spantextTag.className='chat-text';
+					spantimeTag.className='chat-time';
+					spantimeTag.style="float:right;"
+					profile_image.className="small-img";
+					profile_image.style='float:left;margin-right:0%;';
+				}
+			}
+			
+		
+			document.querySelector('#chat-log').appendChild(msgListTag);
+		}
+			
+		function readFile() {
+
+			if (this.files && this.files[0]) {
+				
+				var FR= new FileReader();
+				
+				FR.addEventListener("load", function(e) {
+				
+				chatSocket.send(JSON.stringify({
+					'message': e.target.result,
+					'command': 'image',
+					'__str__' : username,
+					'roomname': roomName,
+					
+				}));
+				}); 
+				
+				FR.readAsDataURL( this.files[0] );
+			}
+			
+		}document.getElementById("inp").addEventListener("change", readFile);
+	
+		chatSocket.onopen = function(e) {
+		chatSocket.send(JSON.stringify({'command': 'fetch_message', 'roomname': roomName}));
+		};
+
+		chatSocket.onclose = function(e) {
+			console.error('Chat socket closed unexpectedly');
+		};
+
+		document.querySelector('#chat-message-input').focus();
+		document.querySelector('#chat-message-input').onkeyup = function(e) {
+			if (e.keyCode === 13) {  // enter, return
+				document.querySelector('#chat-message-submit').click();
+			}
+		};
+
+		document.querySelector('#chat-message-submit').onclick = function(e) {
+			const messageInputDom = document.querySelector('#chat-message-input');
+			const message = messageInputDom.value;
+			chatSocket.send(JSON.stringify({
+				'message': message,
+				'__str__':username,
+				'roomname':roomName,
+				'command':'new_message'
+			}));
+			messageInputDom.value = '';
+		};
+	</script>
+{% endblock scripts %}

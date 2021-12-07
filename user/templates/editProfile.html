@@ -1,0 +1,271 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!-- Required meta tags -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<title>Page Title</title>
+
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+		<!-- font awesome -->
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css" />
+		<!-- main style -->
+		<link rel="stylesheet" href="{% static 'css/style.css' %}" type="text/css" />
+		<!-- helper style -->
+		<link rel="stylesheet" href="{% static 'css/global_helper.css' %}" type="text/css" />
+        <link rel="stylesheet" href="{% static 'style/editProfile.css' %}">
+    
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    
+		
+	</head>
+<body>
+	<div style='width:30%;' >
+		<aside > 
+			<div class="side-top ">
+				<div class="row">
+					<div class="col-md-3 align-center">
+						<img class="profile-img" src="{{user.profile.profile_image.url}}"></img>
+					</div>
+					<div class="col-md-7 padding-top-30">
+						<span> {{user.username}}</span>
+					</div>
+					<div class="col-md-2 margin-top-20 padding-0">
+						<div class="dropdown show">
+						  <a class="btn btn-info dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<!-- <i class="fa fa-arrow-down"></i> -->
+						  </a>
+	
+						  <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+							<a class="dropdown-item" href="{% url 'authentication:log-out' %}">Logout</a>
+							<a class="dropdown-item" href="{% url 'authentication:edit' %}">Edit Profile</a>
+						  </div>
+						</div>
+					</div>
+				</div>
+				<div class="search-box" method="post">
+					{% csrf_token %}
+					<a class="fa fa-search" id='room-name-submit'></a>
+					<input type="text" placeholder="Search Contact.." id='room-name-input'>
+				</div>
+						
+			</div>
+			
+			<div class="tabcontent" >
+				
+				{% for private,chat in chat_rooms %}
+					
+						
+						{% if private %}
+						<a id='{{chat.roomname}}' class="row effect swipe {{chat.label}} filterMembers"onclick="activeChat(this)" href="{{chat.get_absolute_url}}" style='color: inherit;text-decoration:none'>
+							<div class="col-md-3" style='padding-right: 40px;'>
+								<img src="{{private.profile_image.url}}" class="thumb-img"  />
+								
+							</div>
+							<div class="col-md-9 padding-0 c-button c-button--gooey" >
+							
+								<div class="row padding-0">
+									<div class="col-md-9 padding-0">
+									
+										<span>{{private.user.username}}</span>
+										<br/>
+										<span class="chat-text" id='{{chat.roomname}}_last_message'>
+											{% if chat.get_last_message %}
+												{% if chat.get_last_message.label == "text" %}
+													{{chat.get_last_message.author}} : {{ chat.get_last_message.message|slice:":25" }} {% if chat.get_last_message.message|length > 35 %}...{% endif %}
+												{% else %}
+													{{chat.get_last_message.author}} : send image
+												{% endif%}
+											{% endif%}
+										</span>
+									</div>
+									<div class="col-md-3 padding-0">
+										<span class="chat-time" id='{{chat.roomname}}_last_message_time'>{{chat.get_last_message.local_date}}</span>
+									</div>
+								</div>
+							
+							</div>
+						</a>
+						{% else %}
+							<a id='{{chat.roomname}}' class="row effect swipe {{chat.label}} filterMembers"onclick="activeChat(this)" href="{{chat.get_absolute_url}}" style='color: inherit;text-decoration:none'>
+								<div class="col-md-3" style='padding-right: 40px;'>
+									<img src="{{chat.profile.url}}" class="thumb-img"  />
+									
+								</div>
+								<div class="col-md-9 padding-0 c-button c-button--gooey" >
+								
+									<div class="row padding-0">
+										<div class="col-md-9 padding-0">
+										
+											<span>{{chat.roomname}}</span>
+											<br/>
+											<span class="chat-text" id='{{chat.roomname}}_last_message'>
+												{% if chat.get_last_message %}
+													{% if chat.get_last_message.label == "text" %}
+														{{chat.get_last_message.author}} : {{ chat.get_last_message.message|slice:":25" }} {% if chat.get_last_message.message|length > 35 %}...{% endif %}
+													{% else %}
+														{{chat.get_last_message.author}} : send image
+													{% endif%}
+												{% endif%}
+											</span>
+										</div>
+										<div class="col-md-3 padding-0">
+											<span class="chat-time" id='{{chat.roomname}}_last_message_time'>{{chat.get_last_message.local_date}}</span>
+										</div>
+									</div>
+								
+								</div>
+							</a>
+						{% endif %}
+												
+				{% endfor %}
+			</div>
+		</aside>
+	</div>
+
+	<div class="sidebar-right" style='width: 75%;'>
+		<div class="row">
+			
+			<div class="online-user" id='container-users'>
+				<div class="form-body" style='width: 800px;'>
+					<div class="row">
+						<div class="form-holder">
+							<div class="form-content">
+								<div class="form-items">
+									<h3>EditProfile</h3>
+									
+									
+											
+									<div class="form-content" style='padding: 10px;' >
+										<div class="form-items" style='padding: 10px;'>
+											<h6>Change Profile Image</h6>
+											<form method="post" enctype="multipart/form-data" >
+												{% csrf_token %}
+												{{image_form.as_p}}
+		
+												<input type="submit"  class="btn btn-outline-light" style='margin-top: 10px;margin-left: 15px;' value='Change' />
+											</form>
+											
+										</div>
+									</div>
+											
+										
+
+									<form method="post"  action="">
+										{% csrf_token %}
+
+										
+										<!-- <div class="col-md-12" style='width:500px'>
+											{{profile_form.image}}
+										</div> -->
+
+										<div class="col-md-12" style='width:500px'>
+											{{profile_form.full_name}}		
+										</div>
+
+										<div class="col-md-12" style='width:500px'>
+											{{profile_form.location}}
+										</div>
+
+										<div class="col-md-12" style='width:500px'>
+											{{profile_form.email}}
+										</div> 
+
+										
+
+										<input type="submit"  class="btn btn-outline-light" style='margin-top: 10px;margin-left: 15px;' value='Send' />
+									</form>
+									
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--  -->
+				
+			</div>
+		</div>
+</div>
+		
+
+
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script></body>
+<script src="{%static 'js/reconnecting-websocket.js'%}"></script>
+	
+<script>
+	const chatSocket4 = new ReconnectingWebSocket('ws://'+ window.location.host+ '/ws/chat/');
+	var users={{users|safe}};
+	
+	
+	document.querySelector('#room-name-input').focus();
+	document.querySelector('#room-name-input').onkeyup = function(e) {
+		if (e.keyCode === 13) {  // enter, return
+			document.querySelector('#room-name-submit').click();
+		}
+	};
+	
+
+	document.querySelector('#room-name-submit').onclick = function(e) {
+		var roomName = document.querySelector('#room-name-input').value;
+		if (roomName.length != 0){
+			var arraycontainsturtles = (users.indexOf(roomName) > -1);
+			if(arraycontainsturtles){
+				window.location.pathname = '/chat/contact/' + roomName + '/';
+			}else{
+				window.location.pathname = '/chat/' + roomName + '/';
+			}
+		}
+		
+	};
+	
+
+	
+
+	
+	//select chat active
+	function activeChat(e) {
+		var rows = document.querySelectorAll('.row');
+		var i;
+		for(i = 0; i < rows.length; i++) {
+			rows[i].classList.remove('active-chat');
+		}
+		e.classList.add('active-chat');
+	}
+	//simulation append chat text
+	function appendText() {
+		var text = document.querySelector("input[name='chat_message']").value;
+		var element = '<div class="row">'+
+							'<div class="right-chat">'+
+								'<span class="chat-text">'+
+									text +
+								'</span>'+
+								'<br/>'+
+								'<span class="chat-time" style="float: right;">'+
+									'14:20 PM'+
+								'</span>'+
+							'</div>'+
+						'</div>';
+		var content = document.querySelector('.content');
+			content.innerHTML += element;
+			content.scrollTop +=200;
+			document.querySelector("input[name='chat_message']").value = '';
+
+	}
+	/*add to do list*/
+	function addActivity() {
+		var title = document.querySelector("input[name='title']").value;
+		var todo = document.querySelector('.todo ul');
+			todo.innerHTML += '<li><i class="fa fa-university"></i> '+ title+'</li>';
+		var btn_close =  document.getElementById('close-modal');
+			btn_close.click();
+	}
+</script>
+
+</body>
+</html>
+		
