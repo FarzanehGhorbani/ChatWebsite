@@ -28,9 +28,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'channels',
     'rest_framework',
+    'django_filters',
     'chat',
     'user'
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -71,7 +73,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'ChatApp',
         'USER':'postgres',
-        'PASSWORD':'***********',
+        'PASSWORD':'*********',
         'HOST':'localhost',
         'PORT':'5432',
     }

@@ -19,7 +19,7 @@ class Chat(models.Model):
     roomname= models.CharField(max_length=100)
     profile=models.ImageField(upload_to=upload_image_path,default='group.png')
     members= models.ManyToManyField(Profile,related_name='members')
-    label=models.CharField(max_length=8,null=True,blank=True)
+    label=models.CharField(max_length=8)
 
     def __str__(self):
         return self.roomname
@@ -46,6 +46,27 @@ class Message (models.Model):
 
    def local_date(self):
         return jalali_date_time_converter(self.timestamp)
+
+   local_date.short_description='date'
+
+   def get_message(self):
+       if len(self.message)>40:
+        return f'{self.message[:40]} ...'
+       else:
+           return self.message
+
+   get_message.short_description='message'
+
+   def get_author_chat(self):
+       return Chat.objects.filter(members=self.author).all
+
+   
+#    def get_related_chat(self,request,**kwargs):
+#        if self.related_chat.label=='contact':
+#            return f'{request} {kwargs}'
+#        else:
+#            return self.related_chat
+
 
    def get_user_profile(self):
        return self.author.image_field

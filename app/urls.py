@@ -21,6 +21,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('chat/',include('chat.urls',namespace='chat')),
     path('authentication/',include('user.urls',namespace='authentication')),
+    
+    path('chat-api/',include('chat.api.urls',namespace='chat-api'))
 ]
 
 from django.conf import settings
