@@ -21,7 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('chat/',include('chat.urls',namespace='chat')),
     path('authentication/',include('user.urls',namespace='authentication')),
-    
+    path('user-api/',include('user.api.urls',namespace='user-api')),
     path('chat-api/',include('chat.api.urls',namespace='chat-api'))
 ]
 
